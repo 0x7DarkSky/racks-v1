@@ -18,14 +18,14 @@ export default function ProductAction() {
   }, [productId]);
 
   const affiliateLink = useMemo(() => {
-    if (!product) return null;
-    return {
-      id: `link-${product.id}`,
-      product_id: product.id,
-      posted: false,
-      link: `${window.location.origin}/r/${product.id}?ref=creator123`,
-    };
-  }, [product]);
+  if (!product) return null;
+  return {
+    id: `link-${product.id}`,
+    product_id: product.id,
+    posted: false,
+    link: product.affiliate_url,
+  };
+}, [product]);
 
   const earnPerSale = product
     ? ((product.price * product.commission_percentage) / 100).toFixed(2)

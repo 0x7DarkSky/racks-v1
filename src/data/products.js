@@ -1,12 +1,13 @@
 export const products = [
   {
     id: "wallet-1",
-    name: "Minimalist Leather Wallet",
+    name: "Chargeur Portable sans Fil magnétique 10 000 mAh 14 mm Design Titane Ultra Fin",
     price: 39.99,
     commission_percentage: 25,
-    category: "Fashion",
-    image_url: "https://images.unsplash.com/photo-1627123424574-724758594e93?auto=format&fit=crop&w=1200&q=80",
+    category: "Tech",
+    image_url: "https://m.media-amazon.com/images/I/61VYbAPhJ8L._AC_SL1500_.jpg",
     tags: ["Trending", "Easy to sell"],
+    affiliate_url: "https://amzn.to/4m0fWRq"
   },
   {
     id: "earbuds-1",
@@ -16,6 +17,7 @@ export const products = [
     category: "Tech",
     image_url: "https://images.unsplash.com/photo-1606220588913-b3aacb4d2f46?auto=format&fit=crop&w=1200&q=80",
     tags: ["High commission", "Popular"],
+    affiliate_url: "https://amzn.to/XXXX2"
   },
   {
     id: "serum-1",
@@ -25,6 +27,7 @@ export const products = [
     category: "Beauty",
     image_url: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&w=1200&q=80",
     tags: ["Trending", "New"],
+    affiliate_url: "https://amzn.to/XXXX3"
   },
   {
     id: "bands-1",
@@ -34,6 +37,7 @@ export const products = [
     category: "Fitness",
     image_url: "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=1200&q=80",
     tags: ["High commission", "Easy to sell"],
+    affiliate_url: "https://amzn.to/XXXX4"
   },
   {
     id: "lamp-1",
@@ -43,5 +47,6 @@ export const products = [
     category: "Home",
     image_url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
     tags: ["Trending", "Popular"],
+    affiliate_url: "https://amzn.to/XXXX5"
   },
 ];
