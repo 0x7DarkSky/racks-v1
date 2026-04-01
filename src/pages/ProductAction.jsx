@@ -23,7 +23,7 @@ export default function ProductAction() {
     id: `link-${product.id}`,
     product_id: product.id,
     posted: false,
-    link: product.affiliate_url,
+    link: `${window.location.origin}/r/${product.id}`, 
   };
 }, [product]);
 

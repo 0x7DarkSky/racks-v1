@@ -11,6 +11,7 @@ import ProductFeed from './pages/ProductFeed';
 import ProductAction from './pages/ProductAction';
 import PostConfirmation from './pages/PostConfirmation';
 import Dashboard from './pages/Dashboard';
+import Redirect from "./pages/Redirect";
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -37,16 +38,21 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route element={<AppLayout />}>
-        <Route path="/products" element={<ProductFeed />} />
-        <Route path="/product/:productId" element={<ProductAction />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Route>
-      <Route path="/posted" element={<PostConfirmation />} />
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+<Routes>
+  <Route path="/" element={<Landing />} />
+
+  {/* 🔥 NOUVELLE ROUTE REDIRECT */}
+  <Route path="/r/:productId" element={<Redirect />} />
+
+  <Route element={<AppLayout />}>
+    <Route path="/products" element={<ProductFeed />} />
+    <Route path="/product/:productId" element={<ProductAction />} />
+    <Route path="/dashboard" element={<Dashboard />} />
+  </Route>
+
+  <Route path="/posted" element={<PostConfirmation />} />
+  <Route path="*" element={<PageNotFound />} />
+</Routes>
   );
 };
 
