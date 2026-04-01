@@ -27,6 +27,8 @@ export default function ProductAction() {
   };
 }, [product]);
 
+console.log("affiliateLink shown in UI:", affiliateLink?.link);
+
   const earnPerSale = product
     ? ((product.price * product.commission_percentage) / 100).toFixed(2)
     : "0";
