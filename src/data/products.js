@@ -102,5 +102,18 @@ export const products = [
       "Easy to sell"
     ],
     "affiliate_url": "https://amzn.to/3NPE5xz"
+  },
+  {
+    "id": "huxley-cleansing-gel-be-clean-be-moist",
+    "name": "Huxley Cleansing Gel Be Clean, Be moist",
+    "price": 32.5,
+    "commission_percentage": 25,
+    "category": "Tech",
+    "image_url": "/products/huxley-cleansing-gel-be-clean-be-moist.jpg",
+    "tags": [
+      "Trending",
+      "Easy to sell"
+    ],
+    "affiliate_url": "https://amzn.to/3PXrCIF"
   }
 ];
