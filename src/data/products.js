@@ -76,5 +76,18 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/47DRwr7"
+  },
+  {
+    "id": "litiere-chat-autonettoyante-feelneedy-bac-a-litiere-automati",
+    "name": "Litiere Chat Autonettoyante FEELNEEDY, Bac à Litière Automatique, Anti-Fuites/Anti-Pincement/Triple Anti-Odeur/Secure/Contrôle APP/Nettoyage Facile, Capacité Maximale de 65L",
+    "price": 243.26,
+    "commission_percentage": 15,
+    "category": "Tech",
+    "image_url": "/products/litiere-chat-autonettoyante-feelneedy-bac-a-litiere-automati.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/4c6iuZX"
   }
 ];

@@ -18,15 +18,23 @@ function ask(question) {
   return new Promise((resolve) => rl.question(question, resolve));
 }
 
+function normalizeText(text = "") {
+  return text.replace(/\s+/g, " ").trim();
+}
+
+function cleanProductName(name = "") {
+  return normalizeText(name)
+    .replace(/\s*-\s*Amazon\..*$/i, "")
+    .replace(/\s*\|\s*Amazon\..*$/i, "")
+    .trim();
+}
+
 function extractPrice(text) {
   if (!text) return null;
 
-  const cleaned = text
-    .replace(/\s+/g, " ")
-    .replace(/,/g, ".")
-    .trim();
-
+  const cleaned = normalizeText(text).replace(/,/g, ".");
   const match = cleaned.match(/(\d+(?:\.\d{1,2})?)/);
+
   if (!match) return null;
 
   const price = Number(match[1]);
@@ -44,24 +52,41 @@ function getCommissionPercentage(price) {
 function guessCategory(name = "") {
   const n = name.toLowerCase();
 
-  if (/(wallet|bag|watch|fashion|shirt|shoe|hoodie)/.test(n)) return "Fashion";
-  if (/(earbud|headphone|keyboard|charger|phone|tech|led|lamp|portable|usb)/.test(n)) return "Tech";
-  if (/(serum|skin|beauty|cream|hair|makeup)/.test(n)) return "Beauty";
-  if (/(fitness|gym|band|roller|sport|abs)/.test(n)) return "Fitness";
-  if (/(home|kitchen|decor|light|lamp)/.test(n)) return "Home";
+  if (/(wallet|bag|watch|fashion|shirt|shoe|hoodie|sneaker|jacket)/.test(n)) return "Fashion";
+  if (/(earbud|headphone|keyboard|charger|phone|tech|usb|powerbank|wireless|portable)/.test(n)) return "Tech";
+  if (/(serum|skin|beauty|cream|hair|makeup|cosmetic|skincare)/.test(n)) return "Beauty";
+  if (/(fitness|gym|band|roller|sport|abs|yoga|muscle)/.test(n)) return "Fitness";
+  if (/(home|kitchen|decor|lamp|light|desk|chair|organizer)/.test(n)) return "Home";
+  if (/(cat|dog|pet|animal|arbre a chat|arbre à chat|litter|hamster)/.test(n)) return "Home";
 
   return "Tech";
 }
 
 function guessTags(name = "", price = 0) {
+  const lower = name.toLowerCase();
   const tags = ["Trending"];
 
   if (price >= 20 && price <= 60) tags.push("Easy to sell");
   if (price >= 50) tags.push("High commission");
-
-  if (/new|2025|2026/.test(name.toLowerCase())) tags.push("New");
+  if (/new|2025|2026/.test(lower)) tags.push("New");
+  if (/portable|wireless|magnetic|led|viral|tiktok/.test(lower)) tags.push("Popular");
 
   return [...new Set(tags)].slice(0, 2);
+}
+
+function isSuspiciousImageUrl(url = "") {
+  const lower = url.toLowerCase();
+
+  return (
+    !url ||
+    lower.includes("fls-eu.amazon") ||
+    lower.includes("uedata=") ||
+    lower.includes("pixel") ||
+    lower.includes("spacer") ||
+    lower.includes("transparent") ||
+    lower.includes("sprite") ||
+    lower.endsWith(".svg")
+  );
 }
 
 async function scrapeProduct(url) {
@@ -71,6 +96,7 @@ async function scrapeProduct(url) {
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
       "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
     },
+    timeout: 20000,
   });
 
   const $ = cheerio.load(html);
@@ -78,17 +104,23 @@ async function scrapeProduct(url) {
   const name =
     $('meta[property="og:title"]').attr("content") ||
     $('meta[name="twitter:title"]').attr("content") ||
-    $("h1").first().text().trim() ||
-    $("title").text().trim();
+    $("#productTitle").text() ||
+    $("h1").first().text() ||
+    $("title").text();
 
-  const imageUrl =
+  let imageUrl =
     $('meta[property="og:image"]').attr("content") ||
     $('meta[name="twitter:image"]').attr("content") ||
+    $("#landingImage").attr("src") ||
+    $("#imgTagWrapperId img").attr("src") ||
     $('img').first().attr("src") ||
     "";
 
   const rawPrice =
     $('meta[property="product:price:amount"]').attr("content") ||
+    $("#priceblock_ourprice").text() ||
+    $("#priceblock_dealprice").text() ||
+    $(".a-price .a-offscreen").first().text() ||
     $('[class*="price"]').first().text() ||
     $('[id*="price"]').first().text() ||
     $('meta[name="price"]').attr("content") ||
@@ -96,27 +128,48 @@ async function scrapeProduct(url) {
 
   const price = extractPrice(rawPrice);
 
-  console.log("Scraped name:", name);
-  console.log("Scraped imageUrl:", imageUrl);
+  const cleanedName = cleanProductName(name);
+  const cleanedImage = normalizeText(imageUrl);
+
+  console.log("Scraped name:", cleanedName);
+  console.log("Scraped imageUrl:", cleanedImage);
   console.log("Scraped price:", price);
 
   return {
-    name: name?.trim(),
-    imageUrl: imageUrl?.trim(),
+    name: cleanedName,
+    imageUrl: cleanedImage,
     price,
   };
+}
+
+async function ensureGoodImageUrl(imageUrl, pageUrl) {
+  let candidate = imageUrl;
+
+  if (!candidate || isSuspiciousImageUrl(candidate)) {
+    console.log("\n⚠️ Scraped image looks suspicious or unusable.");
+    console.log("Scraped image URL:", candidate || "(empty)");
+
+    candidate = (await ask("Paste a better image URL manually: ")).trim();
+  }
+
+  if (!candidate) return "";
+
+  try {
+    return new URL(candidate, pageUrl).toString();
+  } catch (error) {
+    console.warn("Invalid image URL after manual fallback.");
+    return "";
+  }
 }
 
 async function downloadAndCropImage(imageUrl, id, pageUrl) {
   if (!imageUrl) return "";
 
-  let finalImageUrl;
+  const finalImageUrl = await ensureGoodImageUrl(imageUrl, pageUrl);
 
-  try {
-    finalImageUrl = new URL(imageUrl, pageUrl).toString();
-  } catch (error) {
-    console.warn("Invalid image URL, skipping local crop:", imageUrl);
-    return imageUrl;
+  if (!finalImageUrl) {
+    console.warn("No valid image URL available, skipping crop.");
+    return "";
   }
 
   if (!fs.existsSync(PRODUCTS_IMAGE_DIR)) {
@@ -134,7 +187,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
           "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
         Referer: pageUrl,
       },
-      timeout: 15000,
+      timeout: 20000,
     });
 
     const inputBuffer = Buffer.from(response.data);
@@ -149,7 +202,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
 
     return `/products/${outputFilename}`;
   } catch (error) {
-    console.warn("Image download/crop failed, using original image URL instead.");
+    console.warn("Image download/crop failed, using remote image URL instead.");
     console.warn(error.message);
     return finalImageUrl;
   }
@@ -176,6 +229,14 @@ function writeProductsFile(products) {
   fs.writeFileSync(PRODUCTS_FILE, newFileContent, "utf8");
 }
 
+async function confirmProduct(product) {
+  console.log("\n🧾 Product preview:");
+  console.log(JSON.stringify(product, null, 2));
+
+  const answer = (await ask("\nConfirm add product? (y/n): ")).trim().toLowerCase();
+  return answer === "y" || answer === "yes";
+}
+
 async function main() {
   try {
     const productUrl = (await ask("Product URL: ")).trim();
@@ -183,6 +244,10 @@ async function main() {
 
     if (!productUrl) {
       throw new Error("Product URL is required.");
+    }
+
+    if (!affiliate_url) {
+      throw new Error("Affiliate URL is required.");
     }
 
     console.log("\n🔎 Scraping product page...");
@@ -234,9 +299,20 @@ async function main() {
 
     const products = readProductsFile();
 
-    const alreadyExists = products.some((p) => p.id === id);
-    if (alreadyExists) {
+    const duplicateId = products.some((p) => p.id === id);
+    if (duplicateId) {
       throw new Error(`A product with id "${id}" already exists.`);
+    }
+
+    const duplicateAffiliate = products.some((p) => p.affiliate_url === affiliate_url);
+    if (duplicateAffiliate) {
+      throw new Error("A product with this affiliate_url already exists.");
+    }
+
+    const confirmed = await confirmProduct(product);
+    if (!confirmed) {
+      console.log("\n⛔ Product creation cancelled.");
+      return;
     }
 
     products.push(product);
