@@ -89,5 +89,18 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/4c6iuZX"
+  },
+  {
+    "id": "alphanova-organic-mum-creme-concentree-anti-vergetures-preve",
+    "name": "ALPHANOVA Organic Mum - Crème Concentrée anti vergetures - Prévention et réduction des vergetures - Naturelle et Certifiée Bio - 150ml",
+    "price": 20.1,
+    "commission_percentage": 25,
+    "category": "Tech",
+    "image_url": "/products/alphanova-organic-mum-creme-concentree-anti-vergetures-preve.jpg",
+    "tags": [
+      "Trending",
+      "Easy to sell"
+    ],
+    "affiliate_url": "https://amzn.to/3NPE5xz"
   }
 ];
