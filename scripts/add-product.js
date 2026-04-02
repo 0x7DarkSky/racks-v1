@@ -396,7 +396,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
     fs.mkdirSync(PRODUCTS_IMAGE_DIR, { recursive: true });
   }
 
-  const outputFilename = `${id}.jpg`;
+  const outputFilename = `${id}-${Date.now()}.jpg`;
   const outputPath = path.join(PRODUCTS_IMAGE_DIR, outputFilename);
 
   try {
@@ -415,18 +415,60 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
     const cleanPackshot = await isCleanPackshot(inputBuffer);
 
     if (cleanPackshot) {
-      console.log("✅ Clean image detected → no extra styled background");
+  console.log("✅ Clean image detected → trimming internal frame first");
 
-      await sharp(inputBuffer)
-        .resize(1200, 1200, {
-          fit: "contain",
-          background: { r: 255, g: 255, b: 255, alpha: 1 },
-        })
-        .jpeg({ quality: 92 })
-        .toFile(outputPath);
+  const sampledBg = await getAverageCornerColor(inputBuffer);
+  const background = normalizeBackgroundColor(sampledBg);
 
-      return `/products/${outputFilename}`;
-    }
+  let trimmedPackshot = inputBuffer;
+
+  try {
+    trimmedPackshot = await sharp(inputBuffer)
+      .flatten({ background })
+      .trim({
+        background,
+        threshold: 20,
+      })
+      .toBuffer();
+  } catch {
+    trimmedPackshot = inputBuffer;
+  }
+
+  const resized = await sharp(trimmedPackshot)
+    .resize(1040, 1040, {
+      fit: "inside",
+      withoutEnlargement: false,
+    })
+    .toBuffer();
+
+  const resizedMeta = await sharp(resized).metadata();
+  const finalWidth = resizedMeta.width || 1040;
+  const finalHeight = resizedMeta.height || 1040;
+
+  const CANVAS = 1200;
+  const left = Math.round((CANVAS - finalWidth) / 2);
+  const top = Math.round((CANVAS - finalHeight) / 2);
+
+  await sharp({
+    create: {
+      width: CANVAS,
+      height: CANVAS,
+      channels: 4,
+      background,
+    },
+  })
+    .composite([
+      {
+        input: resized,
+        left,
+        top,
+      },
+    ])
+    .jpeg({ quality: 92 })
+    .toFile(outputPath);
+
+  return `/products/${outputFilename}`;
+}
 
     console.log("🎨 Complex image detected → applying smart premium framing");
     await buildPremiumSquareImage(inputBuffer, outputPath);
