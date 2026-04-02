@@ -129,5 +129,19 @@ export const products = [
       "Easy to sell"
     ],
     "affiliate_url": "https://amzn.to/4dqb1af"
+  },
+  {
+    "id": "mium-lab-gummies-safran-hautement-dose-40mg-et-vitamineamine",
+    "name": "Mium Lab Gummies Safran Hautement dosé",
+    "full_name": "Mium Lab - Gummies Safran Hautement dosé (40mg) et Vitamineamine B6 sans sucres - Enfants et Adultes - Formule exclusive - Programme 3 à 6 semaines - Saveur Pêche - Fabriqué en France",
+    "price": 23.9,
+    "commission_percentage": 25,
+    "category": "Tech",
+    "image_url": "/products/mium-lab-gummies-safran-hautement-dose-40mg-et-vitamineamine-1775129662298.jpg",
+    "tags": [
+      "Trending",
+      "Easy to sell"
+    ],
+    "affiliate_url": "https://amzn.to/419aORC"
   }
 ];
