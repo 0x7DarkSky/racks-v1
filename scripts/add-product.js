@@ -54,7 +54,7 @@ function guessCategory(name = "") {
 
   if (/(wallet|bag|watch|fashion|shirt|shoe|hoodie|sneaker|jacket)/.test(n)) return "Fashion";
   if (/(earbud|headphone|keyboard|charger|phone|tech|usb|powerbank|wireless|portable)/.test(n)) return "Tech";
-  if (/(serum|skin|beauty|cream|hair|makeup|cosmetic|skincare)/.test(n)) return "Beauty";
+  if (/(serum|skin|beauty|cream|hair|makeup|cosmetic|skincare|gel|cleanser|lotion)/.test(n)) return "Beauty";
   if (/(fitness|gym|band|roller|sport|abs|yoga|muscle)/.test(n)) return "Fitness";
   if (/(home|kitchen|decor|lamp|light|desk|chair|organizer)/.test(n)) return "Home";
   if (/(cat|dog|pet|animal|arbre a chat|arbre à chat|litter|hamster)/.test(n)) return "Home";
@@ -148,7 +148,6 @@ async function ensureGoodImageUrl(imageUrl, pageUrl) {
   if (!candidate || isSuspiciousImageUrl(candidate)) {
     console.log("\n⚠️ Scraped image looks suspicious or unusable.");
     console.log("Scraped image URL:", candidate || "(empty)");
-
     candidate = (await ask("Paste a better image URL manually: ")).trim();
   }
 
@@ -160,6 +159,108 @@ async function ensureGoodImageUrl(imageUrl, pageUrl) {
     console.warn("Invalid image URL after manual fallback.");
     return "";
   }
+}
+
+async function buildPremiumSquareImage(inputBuffer, outputPath) {
+  const meta = await sharp(inputBuffer).metadata();
+  const width = meta.width || 0;
+  const height = meta.height || 0;
+
+  if (!width || !height) {
+    throw new Error("Unable to read image dimensions.");
+  }
+
+  const ratio = width / height;
+  const isPortrait = ratio < 0.8;
+  const isLandscape = ratio > 1.25;
+
+  let trimmedBuffer = inputBuffer;
+  try {
+    trimmedBuffer = await sharp(inputBuffer).trim().toBuffer();
+  } catch {
+    trimmedBuffer = inputBuffer;
+  }
+
+  const trimmedMeta = await sharp(trimmedBuffer).metadata();
+  const tWidth = trimmedMeta.width || width;
+  const tHeight = trimmedMeta.height || height;
+  const tRatio = tWidth / tHeight;
+
+  const likelyPackshot = tRatio < 0.8 || isPortrait;
+
+  const CANVAS = 1200;
+  const background = { r: 245, g: 245, b: 245, alpha: 1 };
+
+  let resizedBuffer;
+  let resizedMeta;
+
+  if (likelyPackshot) {
+    resizedBuffer = await sharp(trimmedBuffer)
+      .resize({
+        width: 900,
+        height: 900,
+        fit: "inside",
+        withoutEnlargement: false,
+      })
+      .toBuffer();
+
+    resizedMeta = await sharp(resizedBuffer).metadata();
+  } else if (isLandscape) {
+    resizedBuffer = await sharp(inputBuffer)
+      .resize({
+        width: 1040,
+        height: 1040,
+        fit: "inside",
+        position: "attention",
+        withoutEnlargement: false,
+      })
+      .toBuffer();
+
+    resizedMeta = await sharp(resizedBuffer).metadata();
+  } else {
+    resizedBuffer = await sharp(trimmedBuffer)
+      .resize({
+        width: 980,
+        height: 980,
+        fit: "inside",
+        position: "center",
+        withoutEnlargement: false,
+      })
+      .toBuffer();
+
+    resizedMeta = await sharp(resizedBuffer).metadata();
+  }
+
+  const finalWidth = resizedMeta.width || 900;
+  const finalHeight = resizedMeta.height || 900;
+
+  const left = Math.round((CANVAS - finalWidth) / 2);
+
+  let top = Math.round((CANVAS - finalHeight) / 2);
+
+  if (likelyPackshot) {
+    top = Math.round((CANVAS - finalHeight) / 2) - 20;
+  }
+
+  if (top < 0) top = 0;
+
+  await sharp({
+    create: {
+      width: CANVAS,
+      height: CANVAS,
+      channels: 4,
+      background,
+    },
+  })
+    .composite([
+      {
+        input: resizedBuffer,
+        left,
+        top,
+      },
+    ])
+    .jpeg({ quality: 92 })
+    .toFile(outputPath);
 }
 
 async function downloadAndCropImage(imageUrl, id, pageUrl) {
@@ -192,13 +293,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
 
     const inputBuffer = Buffer.from(response.data);
 
-    await sharp(inputBuffer)
-      .resize(1200, 1200, {
-        fit: "cover",
-        position: "center",
-      })
-      .jpeg({ quality: 90 })
-      .toFile(outputPath);
+    await buildPremiumSquareImage(inputBuffer, outputPath);
 
     return `/products/${outputFilename}`;
   } catch (error) {
@@ -283,7 +378,7 @@ async function main() {
     const tags = guessTags(name, price);
     const commission_percentage = getCommissionPercentage(price);
 
-    console.log("\n🖼️ Downloading and cropping image...");
+    console.log("\n🖼️ Downloading and formatting image...");
     const localImagePath = await downloadAndCropImage(imageUrl, id, productUrl);
 
     const product = {
