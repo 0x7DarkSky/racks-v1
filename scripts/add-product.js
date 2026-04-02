@@ -113,7 +113,7 @@ async function scrapeProduct(url) {
     $('meta[name="twitter:image"]').attr("content") ||
     $("#landingImage").attr("src") ||
     $("#imgTagWrapperId img").attr("src") ||
-    $('img').first().attr("src") ||
+    $("img").first().attr("src") ||
     "";
 
   const rawPrice =
@@ -161,6 +161,72 @@ async function ensureGoodImageUrl(imageUrl, pageUrl) {
   }
 }
 
+async function getAverageCornerColor(inputBuffer) {
+  const image = sharp(inputBuffer);
+  const meta = await image.metadata();
+
+  const width = meta.width || 0;
+  const height = meta.height || 0;
+
+  if (!width || !height) {
+    return { r: 245, g: 245, b: 245, alpha: 1 };
+  }
+
+  const sampleSize = Math.max(20, Math.floor(Math.min(width, height) * 0.06));
+
+  const corners = [
+    { left: 0, top: 0 },
+    { left: Math.max(0, width - sampleSize), top: 0 },
+    { left: 0, top: Math.max(0, height - sampleSize) },
+    { left: Math.max(0, width - sampleSize), top: Math.max(0, height - sampleSize) },
+  ];
+
+  let totalR = 0;
+  let totalG = 0;
+  let totalB = 0;
+  let totalPixels = 0;
+
+  for (const corner of corners) {
+    const { data, info } = await sharp(inputBuffer)
+      .extract({
+        left: corner.left,
+        top: corner.top,
+        width: sampleSize,
+        height: sampleSize,
+      })
+      .removeAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+
+    for (let i = 0; i < data.length; i += info.channels) {
+      totalR += data[i];
+      totalG += data[i + 1];
+      totalB += data[i + 2];
+      totalPixels++;
+    }
+  }
+
+  if (!totalPixels) {
+    return { r: 245, g: 245, b: 245, alpha: 1 };
+  }
+
+  return {
+    r: Math.round(totalR / totalPixels),
+    g: Math.round(totalG / totalPixels),
+    b: Math.round(totalB / totalPixels),
+    alpha: 1,
+  };
+}
+
+function normalizeBackgroundColor(bg) {
+  return {
+    r: Math.min(255, Math.max(0, bg.r)),
+    g: Math.min(255, Math.max(0, bg.g)),
+    b: Math.min(255, Math.max(0, bg.b)),
+    alpha: 1,
+  };
+}
+
 async function buildPremiumSquareImage(inputBuffer, outputPath) {
   const meta = await sharp(inputBuffer).metadata();
   const width = meta.width || 0;
@@ -176,7 +242,9 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
 
   let trimmedBuffer = inputBuffer;
   try {
-    trimmedBuffer = await sharp(inputBuffer).trim().toBuffer();
+    trimmedBuffer = await sharp(inputBuffer)
+      .trim({ threshold: 8 })
+      .toBuffer();
   } catch {
     trimmedBuffer = inputBuffer;
   }
@@ -189,7 +257,9 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
   const likelyPackshot = tRatio < 0.8 || isPortrait;
 
   const CANVAS = 1200;
-  const background = { r: 245, g: 245, b: 245, alpha: 1 };
+
+  const sampledBg = await getAverageCornerColor(inputBuffer);
+  const background = normalizeBackgroundColor(sampledBg);
 
   let resizedBuffer;
   let resizedMeta;
@@ -197,8 +267,8 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
   if (likelyPackshot) {
     resizedBuffer = await sharp(trimmedBuffer)
       .resize({
-        width: 900,
-        height: 900,
+        width: 940,
+        height: 940,
         fit: "inside",
         withoutEnlargement: false,
       })
@@ -237,11 +307,9 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
   const left = Math.round((CANVAS - finalWidth) / 2);
 
   let top = Math.round((CANVAS - finalHeight) / 2);
-
   if (likelyPackshot) {
-    top = Math.round((CANVAS - finalHeight) / 2) - 20;
+    top -= 20;
   }
-
   if (top < 0) top = 0;
 
   await sharp({
