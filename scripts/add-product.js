@@ -427,7 +427,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
       .flatten({ background })
       .trim({
         background,
-        threshold: 20,
+        threshold: 40,
       })
       .toBuffer();
   } catch {
@@ -469,7 +469,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
 
   return `/products/${outputFilename}`;
 }
-
+ 
     console.log("🎨 Complex image detected → applying smart premium framing");
     await buildPremiumSquareImage(inputBuffer, outputPath);
 
