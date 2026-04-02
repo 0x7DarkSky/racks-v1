@@ -29,6 +29,20 @@ function cleanProductName(name = "") {
     .trim();
 }
 
+function shortenProductName(name = "") {
+  const cleaned = normalizeText(name)
+    .replace(/\(.*?\)/g, "")
+    .replace(/[,]/g, "")
+    .replace(/[-|–]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = cleaned.split(" ").filter(Boolean);
+  const short = words.slice(0, 6).join(" ");
+
+  return short.length > 60 ? `${short.slice(0, 60)}...` : short;
+}
+
 function extractPrice(text) {
   if (!text) return null;
 
@@ -227,6 +241,27 @@ function normalizeBackgroundColor(bg) {
   };
 }
 
+async function isCleanPackshot(inputBuffer) {
+  const { data } = await sharp(inputBuffer)
+    .resize(50, 50)
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+
+  let variation = 0;
+
+  for (let i = 0; i < data.length - 3; i += 3) {
+    const diff =
+      Math.abs(data[i] - data[i + 3]) +
+      Math.abs(data[i + 1] - data[i + 4]) +
+      Math.abs(data[i + 2] - data[i + 5]);
+
+    variation += diff;
+  }
+
+  return variation < 50000;
+}
+
 async function buildPremiumSquareImage(inputBuffer, outputPath) {
   const meta = await sharp(inputBuffer).metadata();
   const width = meta.width || 0;
@@ -240,13 +275,32 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
   const isPortrait = ratio < 0.8;
   const isLandscape = ratio > 1.25;
 
+  const sampledBg = await getAverageCornerColor(inputBuffer);
+  const background = normalizeBackgroundColor(sampledBg);
+
   let trimmedBuffer = inputBuffer;
   try {
     trimmedBuffer = await sharp(inputBuffer)
-      .trim({ threshold: 8 })
+      .flatten({ background })
+      .trim({
+        background,
+        threshold: 18,
+      })
       .toBuffer();
   } catch {
     trimmedBuffer = inputBuffer;
+  }
+
+  try {
+    trimmedBuffer = await sharp(trimmedBuffer)
+      .flatten({ background: { r: 255, g: 255, b: 255, alpha: 1 } })
+      .trim({
+        background: { r: 255, g: 255, b: 255, alpha: 1 },
+        threshold: 24,
+      })
+      .toBuffer();
+  } catch {
+    // keep previous trimmedBuffer
   }
 
   const trimmedMeta = await sharp(trimmedBuffer).metadata();
@@ -258,17 +312,14 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
 
   const CANVAS = 1200;
 
-  const sampledBg = await getAverageCornerColor(inputBuffer);
-  const background = normalizeBackgroundColor(sampledBg);
-
   let resizedBuffer;
   let resizedMeta;
 
   if (likelyPackshot) {
     resizedBuffer = await sharp(trimmedBuffer)
       .resize({
-        width: 940,
-        height: 940,
+        width: 1020,
+        height: 1020,
         fit: "inside",
         withoutEnlargement: false,
       })
@@ -276,10 +327,10 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
 
     resizedMeta = await sharp(resizedBuffer).metadata();
   } else if (isLandscape) {
-    resizedBuffer = await sharp(inputBuffer)
+    resizedBuffer = await sharp(trimmedBuffer)
       .resize({
-        width: 1040,
-        height: 1040,
+        width: 1080,
+        height: 1080,
         fit: "inside",
         position: "attention",
         withoutEnlargement: false,
@@ -290,8 +341,8 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
   } else {
     resizedBuffer = await sharp(trimmedBuffer)
       .resize({
-        width: 980,
-        height: 980,
+        width: 1000,
+        height: 1000,
         fit: "inside",
         position: "center",
         withoutEnlargement: false,
@@ -308,7 +359,7 @@ async function buildPremiumSquareImage(inputBuffer, outputPath) {
 
   let top = Math.round((CANVAS - finalHeight) / 2);
   if (likelyPackshot) {
-    top -= 20;
+    top -= 10;
   }
   if (top < 0) top = 0;
 
@@ -353,7 +404,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
       responseType: "arraybuffer",
       headers: {
         "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
         Referer: pageUrl,
       },
       timeout: 20000,
@@ -361,12 +412,28 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
 
     const inputBuffer = Buffer.from(response.data);
 
+    const cleanPackshot = await isCleanPackshot(inputBuffer);
+
+    if (cleanPackshot) {
+      console.log("✅ Clean image detected → no extra styled background");
+
+      await sharp(inputBuffer)
+        .resize(1200, 1200, {
+          fit: "contain",
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        })
+        .jpeg({ quality: 92 })
+        .toFile(outputPath);
+
+      return `/products/${outputFilename}`;
+    }
+
+    console.log("🎨 Complex image detected → applying smart premium framing");
     await buildPremiumSquareImage(inputBuffer, outputPath);
 
     return `/products/${outputFilename}`;
   } catch (error) {
-    console.warn("Image download/crop failed, using remote image URL instead.");
-    console.warn(error.message);
+    console.warn("Image failed:", error.message);
     return finalImageUrl;
   }
 }
@@ -416,12 +483,12 @@ async function main() {
     console.log("\n🔎 Scraping product page...");
     const scraped = await scrapeProduct(productUrl);
 
-    let name = scraped.name;
+    let fullName = scraped.name;
     let price = scraped.price;
     let imageUrl = scraped.imageUrl;
 
-    if (!name) {
-      name = (await ask("Product name not found. Enter it manually: ")).trim();
+    if (!fullName) {
+      fullName = (await ask("Product name not found. Enter it manually: ")).trim();
     }
 
     if (!price) {
@@ -433,7 +500,7 @@ async function main() {
       imageUrl = (await ask("Image URL not found. Enter it manually: ")).trim();
     }
 
-    if (!name) {
+    if (!fullName) {
       throw new Error("Product name is required.");
     }
 
@@ -441,9 +508,10 @@ async function main() {
       throw new Error("A valid price is required.");
     }
 
-    const id = slugify(name, { lower: true, strict: true }).slice(0, 60);
-    const category = guessCategory(name);
-    const tags = guessTags(name, price);
+    const shortName = shortenProductName(fullName);
+    const id = slugify(fullName, { lower: true, strict: true }).slice(0, 60);
+    const category = guessCategory(fullName);
+    const tags = guessTags(fullName, price);
     const commission_percentage = getCommissionPercentage(price);
 
     console.log("\n🖼️ Downloading and formatting image...");
@@ -451,7 +519,8 @@ async function main() {
 
     const product = {
       id,
-      name,
+      name: shortName,
+      full_name: fullName,
       price,
       commission_percentage,
       category,
