@@ -115,5 +115,19 @@ export const products = [
       "Easy to sell"
     ],
     "affiliate_url": "https://amzn.to/3PXrCIF"
+  },
+  {
+    "id": "mium-lab-morosil-gummies-formule-concentree-morosilr-400mg-o",
+    "name": "Mium Lab Morosil Gummies Formule concentrée",
+    "full_name": "Mium Lab - Morosil Gummies - Formule concentrée Morosil® 400mg - Objectif minceur, brûle-graisse, gestion du poids - Extrait orange sanguine - Dosage optimisé - Complément alimentaire - 21 jours",
+    "price": 23.9,
+    "commission_percentage": 25,
+    "category": "Tech",
+    "image_url": "/products/mium-lab-morosil-gummies-formule-concentree-morosilr-400mg-o.jpg",
+    "tags": [
+      "Trending",
+      "Easy to sell"
+    ],
+    "affiliate_url": "https://amzn.to/4dqb1af"
   }
 ];
