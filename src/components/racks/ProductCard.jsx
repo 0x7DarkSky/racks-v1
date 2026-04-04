@@ -28,10 +28,29 @@ const tagStyles = {
 
 export default function ProductCard({ product, onGetLink, index = 0 }) {
   const [imageError, setImageError] = useState(false);
+  const [imageFit, setImageFit] = useState("cover");
 
   const earnPerSale = (
     (product.price * product.commission_percentage) / 100
   ).toFixed(2);
+
+  function handleImageLoad(event) {
+    const img = event.currentTarget;
+    const width = img.naturalWidth || 1;
+    const height = img.naturalHeight || 1;
+    const ratio = width / height;
+
+    if (ratio > 1.2 || ratio < 0.85) {
+      setImageFit("contain");
+    } else {
+      setImageFit("cover");
+    }
+  }
+
+  const imageClass =
+    imageFit === "contain"
+      ? "w-full h-full object-contain object-center transition-transform duration-300 hover:scale-[1.01]"
+      : "w-full h-full object-cover object-center transition-transform duration-300 hover:scale-[1.03]";
 
   return (
     <motion.div
@@ -46,8 +65,9 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
             src={product.image_url}
             alt={product.name}
             loading="lazy"
+            onLoad={handleImageLoad}
             onError={() => setImageError(true)}
-            className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-[1.03]"
+            className={imageClass}
             style={{ objectPosition: "center center" }}
           />
         ) : (
