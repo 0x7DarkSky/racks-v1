@@ -33,8 +33,6 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
     (product.price * product.commission_percentage) / 100
   ).toFixed(2);
 
-  const hasImage = product?.image_url && !imageError;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -42,18 +40,16 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
       transition={{ delay: index * 0.08, duration: 0.4 }}
       className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm"
     >
-      <div className="relative aspect-square overflow-hidden bg-gradient-to-b from-zinc-800 via-zinc-900 to-black">
-        {hasImage ? (
-          <div className="w-full h-full flex items-center justify-center p-4">
-            <img
-              src={product.image_url}
-              alt={product.name}
-              loading="lazy"
-              onError={() => setImageError(true)}
-              className="max-w-full max-h-full object-contain object-center transition-transform duration-300 ease-out hover:scale-[1.02]"
-              style={{ objectPosition: "center center" }}
-            />
-          </div>
+      <div className="relative aspect-square bg-muted overflow-hidden">
+        {product.image_url && !imageError ? (
+          <img
+            src={product.image_url}
+            alt={product.name}
+            loading="lazy"
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-[1.03]"
+            style={{ objectPosition: "center center" }}
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
@@ -62,7 +58,7 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
           </div>
         )}
 
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
 
         <div className="absolute bottom-3 right-3 bg-gradient-to-r from-secondary to-yellow-300 text-black font-space font-bold px-3 py-1.5 rounded-lg text-sm shadow-lg">
           💰 Earn ${earnPerSale}
