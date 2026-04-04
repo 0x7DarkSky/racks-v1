@@ -241,5 +241,19 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/4c6mJod"
+  },
+  {
+    "id": "trepied-appareil-photo-pour-smartphone-victiv-185cm-trepied-",
+    "name": "Trépied Appareil Photo pour Smartphone Victiv",
+    "full_name": "Trépied Appareil Photo pour Smartphone, Victiv 185cm Trépied Caméra en Alliage Aluminium Léger, avec tête pan Amovible à 3 Voies, Trepieds Photo Compatible DSLR Nikon Canon Camera (Nouveau Améliorer)",
+    "price": 34.27,
+    "commission_percentage": 25,
+    "category": "Tech",
+    "image_url": "/products/trepied-appareil-photo-pour-smartphone-victiv-185cm-trepied--1775337841411.jpg",
+    "tags": [
+      "Trending",
+      "Easy to sell"
+    ],
+    "affiliate_url": "https://amzn.to/4vcqdyb"
   }
 ];

@@ -67,7 +67,7 @@ function guessCategory(name = "") {
   const n = name.toLowerCase();
 
   if (/(wallet|bag|watch|fashion|shirt|shoe|hoodie|sneaker|jacket)/.test(n)) return "Fashion";
-  if (/(earbud|headphone|keyboard|charger|phone|tech|usb|powerbank|wireless|portable|camera|webcam|microphone)/.test(n)) return "Tech";
+  if (/(earbud|headphone|keyboard|charger|phone|tech|usb|powerbank|wireless|portable)/.test(n)) return "Tech";
   if (/(serum|skin|beauty|cream|hair|makeup|cosmetic|skincare|gel|cleanser|lotion)/.test(n)) return "Beauty";
   if (/(fitness|gym|band|roller|sport|abs|yoga|muscle)/.test(n)) return "Fitness";
   if (/(home|kitchen|decor|lamp|light|desk|chair|organizer)/.test(n)) return "Home";
@@ -103,6 +103,48 @@ function isSuspiciousImageUrl(url = "") {
   );
 }
 
+function extractBestAmazonImage($) {
+  const landingImage = $("#landingImage");
+
+  const oldHires = landingImage.attr("data-old-hires");
+  if (oldHires && oldHires.trim()) {
+    return oldHires.trim();
+  }
+
+  const dynamicImageRaw = landingImage.attr("data-a-dynamic-image");
+  if (dynamicImageRaw) {
+    try {
+      const parsed = JSON.parse(dynamicImageRaw);
+      const entries = Object.entries(parsed);
+
+      if (entries.length > 0) {
+        entries.sort((a, b) => {
+          const [, aSize] = a;
+          const [, bSize] = b;
+
+          const aArea = Array.isArray(aSize) ? (aSize[0] || 0) * (aSize[1] || 0) : 0;
+          const bArea = Array.isArray(bSize) ? (bSize[0] || 0) * (bSize[1] || 0) : 0;
+
+          return bArea - aArea;
+        });
+
+        return entries[0][0];
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }
+
+  return (
+    landingImage.attr("src") ||
+    $("#imgTagWrapperId img").attr("src") ||
+    $('meta[property="og:image"]').attr("content") ||
+    $('meta[name="twitter:image"]').attr("content") ||
+    $("img").first().attr("src") ||
+    ""
+  ).trim();
+}
+
 async function scrapeProduct(url) {
   const { data: html } = await axios.get(url, {
     headers: {
@@ -122,13 +164,7 @@ async function scrapeProduct(url) {
     $("h1").first().text() ||
     $("title").text();
 
-  const imageUrl =
-    $('meta[property="og:image"]').attr("content") ||
-    $('meta[name="twitter:image"]').attr("content") ||
-    $("#landingImage").attr("src") ||
-    $("#imgTagWrapperId img").attr("src") ||
-    $("img").first().attr("src") ||
-    "";
+  const imageUrl = extractBestAmazonImage($);
 
   const rawPrice =
     $('meta[property="product:price:amount"]').attr("content") ||
@@ -175,152 +211,34 @@ async function ensureGoodImageUrl(imageUrl, pageUrl) {
   }
 }
 
-async function getAverageCornerColor(inputBuffer) {
-  const image = sharp(inputBuffer);
-  const meta = await image.metadata();
-
+async function saveProductImage(inputBuffer, outputPath) {
+  const meta = await sharp(inputBuffer).metadata();
   const width = meta.width || 0;
   const height = meta.height || 0;
 
   if (!width || !height) {
-    return { r: 245, g: 245, b: 245, alpha: 1 };
+    throw new Error("Unable to read image dimensions.");
   }
 
-  const sampleSize = Math.max(20, Math.floor(Math.min(width, height) * 0.06));
+  const MAX_WIDTH = 1600;
+  const MAX_HEIGHT = 1600;
 
-  const corners = [
-    { left: 0, top: 0 },
-    { left: Math.max(0, width - sampleSize), top: 0 },
-    { left: 0, top: Math.max(0, height - sampleSize) },
-    { left: Math.max(0, width - sampleSize), top: Math.max(0, height - sampleSize) },
-  ];
+  let pipeline = sharp(inputBuffer).rotate();
 
-  let totalR = 0;
-  let totalG = 0;
-  let totalB = 0;
-  let totalPixels = 0;
-
-  for (const corner of corners) {
-    const { data, info } = await sharp(inputBuffer)
-      .extract({
-        left: corner.left,
-        top: corner.top,
-        width: sampleSize,
-        height: sampleSize,
-      })
-      .removeAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true });
-
-    for (let i = 0; i < data.length; i += info.channels) {
-      totalR += data[i];
-      totalG += data[i + 1];
-      totalB += data[i + 2];
-      totalPixels++;
-    }
-  }
-
-  if (!totalPixels) {
-    return { r: 245, g: 245, b: 245, alpha: 1 };
-  }
-
-  return {
-    r: Math.round(totalR / totalPixels),
-    g: Math.round(totalG / totalPixels),
-    b: Math.round(totalB / totalPixels),
-    alpha: 1,
-  };
-}
-
-function normalizeBackgroundColor(bg) {
-  return {
-    r: Math.min(255, Math.max(0, bg.r)),
-    g: Math.min(255, Math.max(0, bg.g)),
-    b: Math.min(255, Math.max(0, bg.b)),
-    alpha: 1,
-  };
-}
-
-function getFallbackBackground(bg) {
-  const avg = (bg.r + bg.g + bg.b) / 3;
-
-  if (avg < 35) {
-    return { r: 245, g: 245, b: 245, alpha: 1 };
-  }
-
-  return bg;
-}
-
-async function trimImageSafely(inputBuffer, background) {
-  let processedBuffer = inputBuffer;
-
-  try {
-    processedBuffer = await sharp(inputBuffer)
-      .flatten({ background })
-      .trim({
-        background,
-        threshold: 10,
-      })
-      .toBuffer();
-  } catch {
-    processedBuffer = inputBuffer;
-  }
-
-  return processedBuffer;
-}
-
-async function buildCardFittedImage(inputBuffer, outputPath) {
-  // Ces dimensions doivent rester fixes pour que le script s’adapte toujours
-  // à la même frame produit côté site, sans changer le front.
-  const FRAME_WIDTH = 1200;
-  const FRAME_HEIGHT = 980;
-
-  // Padding interne pour éviter l'effet zoom / collage aux bords
-  const PADDING_X = 70;
-  const PADDING_Y = 55;
-
-  const sampledBg = await getAverageCornerColor(inputBuffer);
-  const normalizedBg = normalizeBackgroundColor(sampledBg);
-  const background = getFallbackBackground(normalizedBg);
-
-  const processedBuffer = await trimImageSafely(inputBuffer, background);
-
-  const maxWidth = FRAME_WIDTH - PADDING_X * 2;
-  const maxHeight = FRAME_HEIGHT - PADDING_Y * 2;
-
-  const fittedBuffer = await sharp(processedBuffer)
-    .resize({
-      width: maxWidth,
-      height: maxHeight,
-      fit: "contain",
-      position: "center",
+  if (width > MAX_WIDTH || height > MAX_HEIGHT) {
+    pipeline = pipeline.resize({
+      width: MAX_WIDTH,
+      height: MAX_HEIGHT,
+      fit: "inside",
       withoutEnlargement: true,
+    });
+  }
+
+  await pipeline
+    .jpeg({
+      quality: 95,
+      mozjpeg: true,
     })
-    .toBuffer();
-
-  const meta = await sharp(fittedBuffer).metadata();
-  const finalWidth = meta.width || maxWidth;
-  const finalHeight = meta.height || maxHeight;
-
-  const left = Math.round((FRAME_WIDTH - finalWidth) / 2);
-  const top = Math.round((FRAME_HEIGHT - finalHeight) / 2);
-
-  await sharp({
-    create: {
-      width: FRAME_WIDTH,
-      height: FRAME_HEIGHT,
-      channels: 4,
-      background,
-    },
-  })
-    .composite([
-      {
-        input: fittedBuffer,
-        left,
-        top,
-      },
-    ])
-    .jpeg({ quality: 92 })
     .toFile(outputPath);
 }
 
@@ -330,7 +248,7 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
   const finalImageUrl = await ensureGoodImageUrl(imageUrl, pageUrl);
 
   if (!finalImageUrl) {
-    console.warn("No valid image URL available, skipping crop.");
+    console.warn("No valid image URL available, skipping image download.");
     return "";
   }
 
@@ -354,8 +272,8 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
 
     const inputBuffer = Buffer.from(response.data);
 
-    console.log("🖼 Applying stable card-fitted framing...");
-    await buildCardFittedImage(inputBuffer, outputPath);
+    console.log("🖼 Saving highest-quality product image...");
+    await saveProductImage(inputBuffer, outputPath);
 
     return `/products/${outputFilename}`;
   } catch (error) {
@@ -440,7 +358,7 @@ async function main() {
     const tags = guessTags(fullName, price);
     const commission_percentage = getCommissionPercentage(price);
 
-    console.log("\n🖼️ Downloading and formatting image...");
+    console.log("\n🖼️ Downloading and saving HD image...");
     const localImagePath = await downloadAndCropImage(imageUrl, id, productUrl);
 
     const product = {
