@@ -414,17 +414,24 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
     const cleanPackshot = await isCleanPackshot(inputBuffer);
 
     if (cleanPackshot) {
-      console.log("✅ Clean image detected → saving without external canvas");
+      console.log("✅ Clean image detected → trim + simple resize, no external canvas");
 
-      await sharp(inputBuffer)
-        .resize({
-          width: 1200,
-          height: 1200,
-          fit: "inside",
-          withoutEnlargement: false,
-        })
-        .jpeg({ quality: 92 })
-        .toFile(outputPath);
+      let processedBuffer = inputBuffer;
+
+      try {
+        processedBuffer = await sharp(inputBuffer)
+          .trim({ threshold: 12 })
+          .resize({
+            width: 1000,
+            withoutEnlargement: false,
+          })
+          .jpeg({ quality: 92 })
+          .toBuffer();
+      } catch {
+        processedBuffer = inputBuffer;
+      }
+
+      await sharp(processedBuffer).toFile(outputPath);
 
       return `/products/${outputFilename}`;
     }

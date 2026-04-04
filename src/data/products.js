@@ -157,5 +157,33 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/4v1lsHA"
+  },
+  {
+    "id": "attack-shark-r82-he-clavier-gaming-filaire-75-percent-switch",
+    "name": "ATTACK SHARK R82 HE Clavier Gaming",
+    "full_name": "ATTACK SHARK R82 HE Clavier Gaming Filaire 75 %, Switch Magnétique, Polling Rate 8000 Hz, Précision Ultra de 0,005 mm RT, RVB, 5 Couches d’Absorption Sonore, avec Câble LED C01ULTRA(Contour Blanc)",
+    "price": 82.99,
+    "commission_percentage": 30,
+    "category": "Fitness",
+    "image_url": "/products/attack-shark-r82-he-clavier-gaming-filaire-75-percent-switch-1775291734760.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/41MXFOc"
+  },
+  {
+    "id": "sjcam-c400-bundle-vlog64g-camera-vlog-4k-avec-7h-dautonomie-",
+    "name": "SJCAM C400 Bundle Vlog Camera Vlog",
+    "full_name": "SJCAM C400 Bundle Vlog(64G)-Camera Vlog 4K avec 7H d'Autonomie Exceptionnelle,Écran Tactile Rotatif 2.29\",Imperméable,Stabilisation 6 Axes,Caméra d'action pour Youtube,Vlog,Voyages,Activités,Noir",
+    "price": 213.99,
+    "commission_percentage": 15,
+    "category": "Tech",
+    "image_url": "/products/sjcam-c400-bundle-vlog64g-camera-vlog-4k-avec-7h-dautonomie--1775291828471.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/4cbcdvT"
   }
 ];
