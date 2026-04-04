@@ -269,5 +269,19 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/4e3wtly"
+  },
+  {
+    "id": "xiaomi-tv-f-65-165-cm-65-pouces-4k-uhd-smart-tv-fire-tv-cont",
+    "name": "XIAOMI TV F 65 165 cm",
+    "full_name": "XIAOMI TV F 65, 165 cm (65 Pouces), 4K UHD, Smart TV, Fire TV, Contrôle Vocal Alexa, HDR10, MEMC, 60Hz avec 120Hz Game Boost Mode, 2Go+32Go, Compatible avec AirPlay",
+    "price": 399,
+    "commission_percentage": 15,
+    "category": "Tech",
+    "image_url": "/products/xiaomi-tv-f-65-165-cm-65-pouces-4k-uhd-smart-tv-fire-tv-cont-1775339151591.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/3O5UcXJ"
   }
 ];
