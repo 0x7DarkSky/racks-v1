@@ -213,5 +213,19 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/41ILO3I"
+  },
+  {
+    "id": "obsbot-tiny-2-lite-ptz-4k-webcam-1080p60fps-hdr-pc-camera-av",
+    "name": "OBSBOT Tiny 2 Lite PTZ 4K",
+    "full_name": "OBSBOT Tiny 2 Lite, PTZ 4K Webcam 1080P@60fps HDR, PC Caméra avec Suivi IA, micros avec réduction du Bruit IA, trépied, contrôle gestuel, autofocus, Plug & Play, idéal pour Le Jeu ou Le Streaming",
+    "price": 201,
+    "commission_percentage": 15,
+    "category": "Tech",
+    "image_url": "/products/obsbot-tiny-2-lite-ptz-4k-webcam-1080p60fps-hdr-pc-camera-av-1775294230248.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/47DAVUq"
   }
 ];
