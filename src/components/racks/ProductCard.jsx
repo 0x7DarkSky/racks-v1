@@ -59,17 +59,21 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
       transition={{ delay: index * 0.08, duration: 0.4 }}
       className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm"
     >
-      <div className="relative aspect-square bg-muted overflow-hidden">
+      <div className="relative aspect-square bg-[#111318] overflow-hidden">
         {product.image_url && !imageError ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            loading="lazy"
-            onLoad={handleImageLoad}
-            onError={() => setImageError(true)}
-            className={imageClass}
-            style={{ objectPosition: "center center" }}
-          />
+          <div className="w-full h-full p-3">
+            <div className="w-full h-full bg-white rounded-xl overflow-hidden flex items-center justify-center">
+              <img
+                src={product.image_url}
+                alt={product.name}
+                loading="lazy"
+                onLoad={handleImageLoad}
+                onError={() => setImageError(true)}
+                className={imageClass}
+                style={{ objectPosition: "center center" }}
+              />
+            </div>
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
