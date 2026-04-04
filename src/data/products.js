@@ -199,5 +199,19 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/4cpIssw"
+  },
+  {
+    "id": "obsbot-tiny-2-lite-webcam-4k-pour-pc-camera-de-streaming-ptz",
+    "name": "OBSBOT Tiny 2 Lite Webcam 4K",
+    "full_name": "OBSBOT Tiny 2 Lite Webcam 4K pour PC, Caméra De Streaming PTZ avec Suivi IA, Capteur 1/2\", Contrôle par Gestes, 60 FPS, HDR, Microphones, Web cam pour Ordinateur, Ordinateur, Appels Vidéo.",
+    "price": 199,
+    "commission_percentage": 15,
+    "category": "Tech",
+    "image_url": "/products/obsbot-tiny-2-lite-webcam-4k-pour-pc-camera-de-streaming-ptz-1775293903212.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/41ILO3I"
   }
 ];
