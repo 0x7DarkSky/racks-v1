@@ -122,7 +122,7 @@ async function scrapeProduct(url) {
     $("h1").first().text() ||
     $("title").text();
 
-  let imageUrl =
+  const imageUrl =
     $('meta[property="og:image"]').attr("content") ||
     $('meta[name="twitter:image"]').attr("content") ||
     $("#landingImage").attr("src") ||
@@ -169,7 +169,7 @@ async function ensureGoodImageUrl(imageUrl, pageUrl) {
 
   try {
     return new URL(candidate, pageUrl).toString();
-  } catch (error) {
+  } catch {
     console.warn("Invalid image URL after manual fallback.");
     return "";
   }
@@ -411,65 +411,24 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
     });
 
     const inputBuffer = Buffer.from(response.data);
-
     const cleanPackshot = await isCleanPackshot(inputBuffer);
 
     if (cleanPackshot) {
-  console.log("✅ Clean image detected → trimming internal frame first");
+      console.log("✅ Clean image detected → saving without external canvas");
 
-  const sampledBg = await getAverageCornerColor(inputBuffer);
-  const background = normalizeBackgroundColor(sampledBg);
+      await sharp(inputBuffer)
+        .resize({
+          width: 1200,
+          height: 1200,
+          fit: "inside",
+          withoutEnlargement: false,
+        })
+        .jpeg({ quality: 92 })
+        .toFile(outputPath);
 
-  let trimmedPackshot = inputBuffer;
+      return `/products/${outputFilename}`;
+    }
 
-  try {
-    trimmedPackshot = await sharp(inputBuffer)
-      .flatten({ background })
-      .trim({
-        background,
-        threshold: 40,
-      })
-      .toBuffer();
-  } catch {
-    trimmedPackshot = inputBuffer;
-  }
-
-  const resized = await sharp(trimmedPackshot)
-    .resize(1040, 1040, {
-      fit: "inside",
-      withoutEnlargement: false,
-    })
-    .toBuffer();
-
-  const resizedMeta = await sharp(resized).metadata();
-  const finalWidth = resizedMeta.width || 1040;
-  const finalHeight = resizedMeta.height || 1040;
-
-  const CANVAS = 1200;
-  const left = Math.round((CANVAS - finalWidth) / 2);
-  const top = Math.round((CANVAS - finalHeight) / 2);
-
-  await sharp({
-    create: {
-      width: CANVAS,
-      height: CANVAS,
-      channels: 4,
-      background,
-    },
-  })
-    .composite([
-      {
-        input: resized,
-        left,
-        top,
-      },
-    ])
-    .jpeg({ quality: 92 })
-    .toFile(outputPath);
-
-  return `/products/${outputFilename}`;
-}
- 
     console.log("🎨 Complex image detected → applying smart premium framing");
     await buildPremiumSquareImage(inputBuffer, outputPath);
 

@@ -143,5 +143,19 @@ export const products = [
       "Easy to sell"
     ],
     "affiliate_url": "https://amzn.to/419aORC"
+  },
+  {
+    "id": "petkit-pura-max-2-litiere-chat-autonettoyante-bac-a-litter-a",
+    "name": "PETKIT Pura Max 2 Litiere Chat",
+    "full_name": "PETKIT Pura Max 2 Litiere Chat Autonettoyante, Bac à Litter Automatic Amélioré, Anti-fuites/Pincement/Odeur, xSecure, Contrôle APP, Capacité 76L pour Plusieurs Chats",
+    "price": 479.99,
+    "commission_percentage": 15,
+    "category": "Home",
+    "image_url": "/products/petkit-pura-max-2-litiere-chat-autonettoyante-bac-a-litter-a-1775290787961.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/4v1lsHA"
   }
 ];
