@@ -283,5 +283,19 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/3O5UcXJ"
+  },
+  {
+    "id": "sofa-240x105-cm-canape-3-places-velours-cotele-beige-canape-",
+    "name": "Sofa 240x105 cm Canapé 3 Places",
+    "full_name": "Sofa 240x105 cm - Canapé 3 Places Velours Côtelé - Beige Canapé Convertible 3 Places avec Dossier rembourré",
+    "price": 569,
+    "commission_percentage": 15,
+    "category": "Tech",
+    "image_url": "/products/sofa-240x105-cm-canape-3-places-velours-cotele-beige-canape--1775340502705.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/47Hq37Z"
   }
 ];
