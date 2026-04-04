@@ -255,5 +255,19 @@ export const products = [
       "Easy to sell"
     ],
     "affiliate_url": "https://amzn.to/4vcqdyb"
+  },
+  {
+    "id": "apps-integrees-and-2026-upgraded-videoprojecteur-avec-wifi-6",
+    "name": "[Apps intégrées & 2026 Upgraded] Vidéoprojecteur",
+    "full_name": "[Apps intégrées & 2026 Upgraded] Vidéoprojecteur avec WiFi 6 et Bluetooth 5.4 Mini Projecteur Supporte 4K 1080P Auto Keystone Rotation 180° Compatibile avec HDMI/TV Stick/Memory Stick/Laptop, Blanc",
+    "price": 65.99,
+    "commission_percentage": 30,
+    "category": "Tech",
+    "image_url": "/products/apps-integrees-and-2026-upgraded-videoprojecteur-avec-wifi-6-1775338788328.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/4e3wtly"
   }
 ];
