@@ -24,14 +24,16 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
     >
       <div className="relative aspect-square bg-muted overflow-hidden">
         {product.image_url && !imageError ? (
-          <img
-            src={product.image_url}
-            alt={product.name}
-            loading="lazy"
-            onError={() => setImageError(true)}
-            className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-[1.03]"
-            style={{ objectPosition: "center center" }}
-          />
+          <div className="w-full h-full p-4 flex items-center justify-center bg-muted">
+            <img
+              src={product.image_url}
+              alt={product.name}
+              loading="lazy"
+              onError={() => setImageError(true)}
+              className="max-w-full max-h-full object-contain object-center transition-transform duration-300 hover:scale-[1.02]"
+              style={{ objectPosition: "center center" }}
+            />
+          </div>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
