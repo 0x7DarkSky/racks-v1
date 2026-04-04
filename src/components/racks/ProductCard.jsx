@@ -4,16 +4,34 @@ import { DollarSign } from "lucide-react";
 import GradientButton from "./GradientButton";
 
 const tagStyles = {
-  Trending: { emoji: "🔥", bg: "bg-orange-500/15 text-orange-400 border-orange-500/20" },
-  "Easy to sell": { emoji: "⚡", bg: "bg-blue-500/15 text-blue-400 border-blue-500/20" },
-  "High commission": { emoji: "💸", bg: "bg-green-500/15 text-green-400 border-green-500/20" },
-  New: { emoji: "✨", bg: "bg-purple-500/15 text-purple-400 border-purple-500/20" },
-  Popular: { emoji: "⭐", bg: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20" },
+  Trending: {
+    emoji: "🔥",
+    bg: "bg-orange-500/15 text-orange-400 border-orange-500/20",
+  },
+  "Easy to sell": {
+    emoji: "⚡",
+    bg: "bg-blue-500/15 text-blue-400 border-blue-500/20",
+  },
+  "High commission": {
+    emoji: "💸",
+    bg: "bg-green-500/15 text-green-400 border-green-500/20",
+  },
+  New: {
+    emoji: "✨",
+    bg: "bg-purple-500/15 text-purple-400 border-purple-500/20",
+  },
+  Popular: {
+    emoji: "⭐",
+    bg: "bg-yellow-500/15 text-yellow-400 border-yellow-500/20",
+  },
 };
 
 export default function ProductCard({ product, onGetLink, index = 0 }) {
   const [imageError, setImageError] = useState(false);
-  const earnPerSale = ((product.price * product.commission_percentage) / 100).toFixed(2);
+
+  const earnPerSale = (
+    (product.price * product.commission_percentage) / 100
+  ).toFixed(2);
 
   return (
     <motion.div
@@ -24,16 +42,14 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
     >
       <div className="relative aspect-square bg-muted overflow-hidden">
         {product.image_url && !imageError ? (
-          <div className="w-full h-full p-4 flex items-center justify-center bg-muted">
-            <img
-              src={product.image_url}
-              alt={product.name}
-              loading="lazy"
-              onError={() => setImageError(true)}
-              className="max-w-full max-h-full object-contain object-center transition-transform duration-300 hover:scale-[1.02]"
-              style={{ objectPosition: "center center" }}
-            />
-          </div>
+          <img
+            src={product.image_url}
+            alt={product.name}
+            loading="lazy"
+            onError={() => setImageError(true)}
+            className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-[1.03]"
+            style={{ objectPosition: "center center" }}
+          />
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-secondary/10">
             <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-secondary/20 flex items-center justify-center">
@@ -59,6 +75,7 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
             <span className="text-muted-foreground text-sm">
               ${product.price.toFixed(2)}
             </span>
+
             <span className="text-primary font-semibold text-sm">
               {product.commission_percentage}% commission
             </span>
@@ -69,6 +86,7 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
           <div className="flex flex-wrap gap-1.5">
             {product.tags.map((tag) => {
               const style = tagStyles[tag] || tagStyles.Popular;
+
               return (
                 <span
                   key={tag}

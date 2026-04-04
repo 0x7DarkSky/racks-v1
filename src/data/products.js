@@ -185,5 +185,19 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/4cbcdvT"
+  },
+  {
+    "id": "4k-camera-vlog-portable-camera-pov-camera-de-corps-body-cam-",
+    "name": "4K Camera Vlog Portable Caméra POV",
+    "full_name": "4K Camera Vlog, Portable Caméra POV, Caméra de Corps, Body Cam pour Sport, WiFi Mini Camera Sport avec Stabilisation, Caméras Corporelles pour Voyage, Carte TF 64GB",
+    "price": 149.99,
+    "commission_percentage": 15,
+    "category": "Tech",
+    "image_url": "/products/4k-camera-vlog-portable-camera-pov-camera-de-corps-body-cam--1775292504717.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/4cpIssw"
   }
 ];
