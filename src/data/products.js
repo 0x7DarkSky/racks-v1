@@ -227,5 +227,19 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/47DAVUq"
+  },
+  {
+    "id": "dji-osmo-nano-bundle-standard-64-go-petite-camera-vlog-4k60-",
+    "name": "DJI Osmo Nano Bundle Standard Petite",
+    "full_name": "DJI Osmo Nano Bundle Standard (64 Go) - Petite caméra vlog 4K/60 IPS avec capteur 1/1,3″, vidéo FOV Large 143°, 200 Min d'enregistrement, caméra POV magnétique 4K pour Le Sport, Le vlog",
+    "price": 279,
+    "commission_percentage": 15,
+    "category": "Fitness",
+    "image_url": "/products/dji-osmo-nano-bundle-standard-64-go-petite-camera-vlog-4k60--1775336468895.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/4c6mJod"
   }
 ];

@@ -67,7 +67,7 @@ function guessCategory(name = "") {
   const n = name.toLowerCase();
 
   if (/(wallet|bag|watch|fashion|shirt|shoe|hoodie|sneaker|jacket)/.test(n)) return "Fashion";
-  if (/(earbud|headphone|keyboard|charger|phone|tech|usb|powerbank|wireless|portable)/.test(n)) return "Tech";
+  if (/(earbud|headphone|keyboard|charger|phone|tech|usb|powerbank|wireless|portable|camera|webcam|microphone)/.test(n)) return "Tech";
   if (/(serum|skin|beauty|cream|hair|makeup|cosmetic|skincare|gel|cleanser|lotion)/.test(n)) return "Beauty";
   if (/(fitness|gym|band|roller|sport|abs|yoga|muscle)/.test(n)) return "Fitness";
   if (/(home|kitchen|decor|lamp|light|desk|chair|organizer)/.test(n)) return "Home";
@@ -241,139 +241,81 @@ function normalizeBackgroundColor(bg) {
   };
 }
 
-async function isCleanPackshot(inputBuffer) {
-  const { data } = await sharp(inputBuffer)
-    .resize(50, 50)
-    .removeAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true });
+function getFallbackBackground(bg) {
+  const avg = (bg.r + bg.g + bg.b) / 3;
 
-  let variation = 0;
-
-  for (let i = 0; i < data.length - 3; i += 3) {
-    const diff =
-      Math.abs(data[i] - data[i + 3]) +
-      Math.abs(data[i + 1] - data[i + 4]) +
-      Math.abs(data[i + 2] - data[i + 5]);
-
-    variation += diff;
+  if (avg < 35) {
+    return { r: 245, g: 245, b: 245, alpha: 1 };
   }
 
-  return variation < 50000;
+  return bg;
 }
 
-async function buildPremiumSquareImage(inputBuffer, outputPath) {
-  const meta = await sharp(inputBuffer).metadata();
-  const width = meta.width || 0;
-  const height = meta.height || 0;
+async function trimImageSafely(inputBuffer, background) {
+  let processedBuffer = inputBuffer;
 
-  if (!width || !height) {
-    throw new Error("Unable to read image dimensions.");
-  }
-
-  const ratio = width / height;
-  const isPortrait = ratio < 0.8;
-  const isLandscape = ratio > 1.25;
-
-  const sampledBg = await getAverageCornerColor(inputBuffer);
-  const background = normalizeBackgroundColor(sampledBg);
-
-  let trimmedBuffer = inputBuffer;
   try {
-    trimmedBuffer = await sharp(inputBuffer)
+    processedBuffer = await sharp(inputBuffer)
       .flatten({ background })
       .trim({
         background,
-        threshold: 18,
+        threshold: 10,
       })
       .toBuffer();
   } catch {
-    trimmedBuffer = inputBuffer;
+    processedBuffer = inputBuffer;
   }
 
-  try {
-    trimmedBuffer = await sharp(trimmedBuffer)
-      .flatten({ background: { r: 255, g: 255, b: 255, alpha: 1 } })
-      .trim({
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-        threshold: 24,
-      })
-      .toBuffer();
-  } catch {
-    // keep previous trimmedBuffer
-  }
+  return processedBuffer;
+}
 
-  const trimmedMeta = await sharp(trimmedBuffer).metadata();
-  const tWidth = trimmedMeta.width || width;
-  const tHeight = trimmedMeta.height || height;
-  const tRatio = tWidth / tHeight;
+async function buildCardFittedImage(inputBuffer, outputPath) {
+  // Ces dimensions doivent rester fixes pour que le script s’adapte toujours
+  // à la même frame produit côté site, sans changer le front.
+  const FRAME_WIDTH = 1200;
+  const FRAME_HEIGHT = 980;
 
-  const likelyPackshot = tRatio < 0.8 || isPortrait;
+  // Padding interne pour éviter l'effet zoom / collage aux bords
+  const PADDING_X = 70;
+  const PADDING_Y = 55;
 
-  const CANVAS = 1200;
+  const sampledBg = await getAverageCornerColor(inputBuffer);
+  const normalizedBg = normalizeBackgroundColor(sampledBg);
+  const background = getFallbackBackground(normalizedBg);
 
-  let resizedBuffer;
-  let resizedMeta;
+  const processedBuffer = await trimImageSafely(inputBuffer, background);
 
-  if (likelyPackshot) {
-    resizedBuffer = await sharp(trimmedBuffer)
-      .resize({
-        width: 1020,
-        height: 1020,
-        fit: "inside",
-        withoutEnlargement: false,
-      })
-      .toBuffer();
+  const maxWidth = FRAME_WIDTH - PADDING_X * 2;
+  const maxHeight = FRAME_HEIGHT - PADDING_Y * 2;
 
-    resizedMeta = await sharp(resizedBuffer).metadata();
-  } else if (isLandscape) {
-    resizedBuffer = await sharp(trimmedBuffer)
-      .resize({
-        width: 1080,
-        height: 1080,
-        fit: "inside",
-        position: "attention",
-        withoutEnlargement: false,
-      })
-      .toBuffer();
+  const fittedBuffer = await sharp(processedBuffer)
+    .resize({
+      width: maxWidth,
+      height: maxHeight,
+      fit: "contain",
+      position: "center",
+      withoutEnlargement: true,
+    })
+    .toBuffer();
 
-    resizedMeta = await sharp(resizedBuffer).metadata();
-  } else {
-    resizedBuffer = await sharp(trimmedBuffer)
-      .resize({
-        width: 1000,
-        height: 1000,
-        fit: "inside",
-        position: "center",
-        withoutEnlargement: false,
-      })
-      .toBuffer();
+  const meta = await sharp(fittedBuffer).metadata();
+  const finalWidth = meta.width || maxWidth;
+  const finalHeight = meta.height || maxHeight;
 
-    resizedMeta = await sharp(resizedBuffer).metadata();
-  }
-
-  const finalWidth = resizedMeta.width || 900;
-  const finalHeight = resizedMeta.height || 900;
-
-  const left = Math.round((CANVAS - finalWidth) / 2);
-
-  let top = Math.round((CANVAS - finalHeight) / 2);
-  if (likelyPackshot) {
-    top -= 10;
-  }
-  if (top < 0) top = 0;
+  const left = Math.round((FRAME_WIDTH - finalWidth) / 2);
+  const top = Math.round((FRAME_HEIGHT - finalHeight) / 2);
 
   await sharp({
     create: {
-      width: CANVAS,
-      height: CANVAS,
+      width: FRAME_WIDTH,
+      height: FRAME_HEIGHT,
       channels: 4,
       background,
     },
   })
     .composite([
       {
-        input: resizedBuffer,
+        input: fittedBuffer,
         left,
         top,
       },
@@ -411,33 +353,9 @@ async function downloadAndCropImage(imageUrl, id, pageUrl) {
     });
 
     const inputBuffer = Buffer.from(response.data);
-    const cleanPackshot = await isCleanPackshot(inputBuffer);
 
-    if (cleanPackshot) {
-      console.log("✅ Clean image detected → trim + simple resize, no external canvas");
-
-      let processedBuffer = inputBuffer;
-
-      try {
-        processedBuffer = await sharp(inputBuffer)
-          .trim({ threshold: 12 })
-          .resize({
-            width: 1000,
-            withoutEnlargement: false,
-          })
-          .jpeg({ quality: 92 })
-          .toBuffer();
-      } catch {
-        processedBuffer = inputBuffer;
-      }
-
-      await sharp(processedBuffer).toFile(outputPath);
-
-      return `/products/${outputFilename}`;
-    }
-
-    console.log("🎨 Complex image detected → applying smart premium framing");
-    await buildPremiumSquareImage(inputBuffer, outputPath);
+    console.log("🖼 Applying stable card-fitted framing...");
+    await buildCardFittedImage(inputBuffer, outputPath);
 
     return `/products/${outputFilename}`;
   } catch (error) {
