@@ -80,5 +80,18 @@ export const products = [
       "High commission"
     ],
     "affiliate_url": "https://amzn.to/4cIgc4r"
+  },
+  {
+    "id": "db-tronic-raspberry-pi-4-1-go-starter-kit-or-edition-64-go-o",
+    "name": "db tronic Raspberry Pi 4 1",
+    "full_name": "db-tronic Raspberry Pi 4 1 Go Starter Kit | Édition 64 Go | Alimentation 15 W | Boîtier | Micro HDMI 4K | Dissipateurs | idéal pour Home Assistant et Le Smart Home",
+    "price": 81.99,
+    "commission_percentage": 30,
+    "category": "Home",
+    "image_url": "/products/db-tronic-raspberry-pi-4-1-go-starter-kit-or-edition-64-go-o-1776179243928.jpg",
+    "tags": [
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/41xNZqW"
   }
 ];
