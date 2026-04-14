@@ -26,19 +26,6 @@ export const products = [
     "affiliate_url": "https://amzn.to/XXXX3"
   },
   {
-    "id": "bands-1",
-    "name": "Resistance Bands Kit",
-    "price": 24.99,
-    "commission_percentage": 40,
-    "category": "Fitness",
-    "image_url": "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=1200&q=80",
-    "tags": [
-      "High commission",
-      "Easy to sell"
-    ],
-    "affiliate_url": "https://amzn.to/XXXX4"
-  },
-  {
     "id": "xiaomi-tv-f-65-165-cm-65-pouces-4k-uhd-smart-tv-fire-tv-cont",
     "name": "XIAOMI TV F 65 165 cm",
     "full_name": "XIAOMI TV F 65, 165 cm (65 Pouces), 4K UHD, Smart TV, Fire TV, Contrôle Vocal Alexa, HDR10, MEMC, 60Hz avec 120Hz Game Boost Mode, 2Go+32Go, Compatible avec AirPlay",
@@ -79,5 +66,19 @@ export const products = [
       "Easy to sell"
     ],
     "affiliate_url": "https://amzn.to/4mdiNqq"
+  },
+  {
+    "id": "db-tronic-raspberry-pi-5-4-go-starter-kit-or-edition-64-go-o",
+    "name": "db tronic Raspberry Pi 5 4",
+    "full_name": "db-tronic Raspberry Pi 5 4 Go Starter Kit | Édition 64 Go | Alimentation 27 W | Boîtier avec Ventilateur | Micro HDMI 4K | Dissipateur | idéal pour Home Assistant et Le Smart Home",
+    "price": 169.49,
+    "commission_percentage": 15,
+    "category": "Home",
+    "image_url": "/products/db-tronic-raspberry-pi-5-4-go-starter-kit-or-edition-64-go-o-1776165574419.jpg",
+    "tags": [
+      "Trending",
+      "High commission"
+    ],
+    "affiliate_url": "https://amzn.to/4cIgc4r"
   }
 ];
