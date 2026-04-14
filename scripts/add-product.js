@@ -78,7 +78,7 @@ function guessCategory(name = "") {
 
 function guessTags(name = "", price = 0) {
   const lower = name.toLowerCase();
-  const tags = [];
+  const tags = ["Trending"];
 
   if (price >= 20 && price <= 60) tags.push("Easy to sell");
   if (price >= 50) tags.push("High commission");

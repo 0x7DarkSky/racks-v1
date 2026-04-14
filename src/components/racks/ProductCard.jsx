@@ -26,14 +26,6 @@ const tagStyles = {
   },
 };
 
-const categoryStyles = {
-  Tech: "bg-cyan-500/15 text-cyan-400 border-cyan-500/20",
-  Beauty: "bg-pink-500/15 text-pink-400 border-pink-500/20",
-  Fitness: "bg-lime-500/15 text-lime-400 border-lime-500/20",
-  Home: "bg-indigo-500/15 text-indigo-400 border-indigo-500/20",
-  Fashion: "bg-rose-500/15 text-rose-400 border-rose-500/20",
-};
-
 export default function ProductCard({ product, onGetLink, index = 0 }) {
   const [imageError, setImageError] = useState(false);
   const [imageFit, setImageFit] = useState("cover");
@@ -59,10 +51,6 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
     imageFit === "contain"
       ? "w-full h-full object-contain object-center transition-transform duration-300 hover:scale-[1.01]"
       : "w-full h-full object-cover object-center transition-transform duration-300 hover:scale-[1.03]";
-
-  const categoryClass =
-    categoryStyles[product.category] ||
-    "bg-white/10 text-white/80 border-white/10";
 
   return (
     <motion.div
@@ -96,14 +84,6 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
 
         <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-black/50 to-transparent pointer-events-none" />
 
-        <div className="absolute top-3 left-3">
-          <span
-            className={`text-xs font-semibold px-2.5 py-1 rounded-full border backdrop-blur-sm ${categoryClass}`}
-          >
-            {product.category || "Uncategorized"}
-          </span>
-        </div>
-
         <div className="absolute bottom-3 right-3 bg-gradient-to-r from-secondary to-yellow-300 text-black font-space font-bold px-3 py-1.5 rounded-lg text-sm shadow-lg">
           💰 Earn ${earnPerSale}
         </div>
@@ -128,20 +108,18 @@ export default function ProductCard({ product, onGetLink, index = 0 }) {
 
         {product.tags && product.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5">
-            {product.tags
-              .filter((tag) => tag !== product.category)
-              .map((tag) => {
-                const style = tagStyles[tag] || tagStyles.Popular;
+            {product.tags.map((tag) => {
+              const style = tagStyles[tag] || tagStyles.Popular;
 
-                return (
-                  <span
-                    key={tag}
-                    className={`text-xs font-medium px-2 py-0.5 rounded-full border ${style.bg}`}
-                  >
-                    {style.emoji} {tag}
-                  </span>
-                );
-              })}
+              return (
+                <span
+                  key={tag}
+                  className={`text-xs font-medium px-2 py-0.5 rounded-full border ${style.bg}`}
+                >
+                  {style.emoji} {tag}
+                </span>
+              );
+            })}
           </div>
         )}
 
